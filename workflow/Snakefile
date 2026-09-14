@@ -2,7 +2,10 @@
 # Please follow the best practices:
 # https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
 # in particular regarding the standardized folder structure mentioned there.
-
+from snakemake.utils import min_version
+min_version("6.0")
+module af3_workflow:
+    snakefile: github("ntnn19/AlphaFold3_workflow", path="workflow/Snakefile", branch="dev")
 
 # load configuration
 # -----------------------------------------------------
@@ -11,6 +14,7 @@ configfile: "config/config.yaml"
 
 # load rules
 # -----------------------------------------------------
+use rule * from af3_workflow as af3_workflow_*
 include: "rules/common.smk"
 include: "rules/process_reads.smk"
 
@@ -34,4 +38,4 @@ onerror:
 rule all:
     default_target: True
     input:
-        "results/multiqc/multiqc_report.html",
+        "results/done.txt",

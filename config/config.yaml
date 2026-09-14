@@ -1,8 +1,60 @@
-sample_sheet: ".test/config/samples.tsv"
+# AlphaFold 3 Snakemake Workflow — Configuration
+# All paths can be absolute or relative to the working directory.
+# Run `snakemake --lint` to validate this file against the schema.
 
-get_genome:
-  ncbi_ftp: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
+# ---------------------------------------------------------------------------
+# Input
+# ---------------------------------------------------------------------------
+sample_sheets: # Type of sample sheet: raw_data | data_pipeline_ready | merge_ready | inference_ready
+    raw_data: "input/input.tsv"   # TSV with columns defined in docs/input.md
 
-simulate_reads:
-  read_length: 100
-  read_number: 10000
+
+
+# ---------------------------------------------------------------------------
+# Run mode
+# ---------------------------------------------------------------------------
+# custom | all-vs-all | pulldown | virtual-drug-screen | stoichio-screen
+mode: "custom"
+
+# ---------------------------------------------------------------------------
+# Sampling
+# ---------------------------------------------------------------------------
+#n_seeds: 3          # random seeds per job (overrides model_seeds column)
+n_samples: 5        # diffusion samples per seed
+
+# ---------------------------------------------------------------------------
+# MSA / template options  (applies when entry_point == raw_data)
+# ---------------------------------------------------------------------------
+msa_option: "none"  # auto | none | upload
+
+# ---------------------------------------------------------------------------
+# Paths (required)
+# ---------------------------------------------------------------------------
+output_dir: "results/af3"
+
+# ---------------------------------------------------------------------------
+# Container
+# ---------------------------------------------------------------------------
+af3_flags:
+#  af3_container: "/gpfs/cssb/group/cssb-topf/natan/singularity_containers/alphafold3/alphafold3_v3.0.2_f6a5aec.sif"
+  af3_container: "/gpfs/cssb/group/cssb-topf/natan/singularity_containers/alphafold3/alphafold3_parallel_a100_40gb_latest_template_free.sif"
+#  af3_container: "/gpfs/cssb/group/cssb-topf/natan/singularity_containers/alphafold3/alphafold3_parallel_a100_80gb_latest_template_free.sif"
+  models_dir: "/gpfs/cssb/group/cssb-topf/natan/singularity_containers/alphafold3/weights"       # AlphaFold 3 model weights
+  databases_dir: "/gpfs/cssb/group/cssb-topf/natan/af3db" # Genetic databases (~2 TB)
+  tmp_dir: "tmp"                     # Scratch space for AF3 temp files
+  # ---------------------------------------------------------------------------
+  # Extra AlphaFold 3 flags (passed verbatim to run_alphafold.py)
+  # ---------------------------------------------------------------------------
+#  extra_af3_flags: "--force_output_dir"
+
+#n_splits: 1
+# ---------------------------------------------------------------------------
+# HPC / resource options
+# ---------------------------------------------------------------------------
+# Set to true on clusters that allocate whole nodes (no consumable GPU slots).
+# The workflow will batch inference jobs and dispatch them with GNU parallel.
+exclusive_lock: true
+
+# Run the CPU-bound data pipeline on the submission node (avoids short GPU jobs)
+run_data_pipeline_locally: false
+af3_version: v3.0.1
